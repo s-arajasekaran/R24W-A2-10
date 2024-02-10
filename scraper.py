@@ -1,23 +1,117 @@
 #Test
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
+from PartA import tokenize, computeWordFrequencies, printTokens
+import sys
+
+global longestPage
+
+global allWords
+
+global hist
+
+global uniqueList
+
+global subDomainList
+
+
+def setup():
+    longestPage =  ("", 0)
+    allWords= {}
+    hist = []
+    uniqueList = set()
+    subDomainList = {}
+
+def getStats():
+    file= open("report.txt" , 'w')
+    longestPage = "Longest Page was : "+ longestPage[0] + " with " + str(longestPage[1]) + " words\n"
+    file.write(longestPage)
+    file.write(printTokens(allWords))
+    uniqueList = "Unique pages visited = " + str(len(uniqueList)) + "\n"
+    file.write(uniqueList)
+    for a in subDomainList:
+        strToWrite = a[0] + " " + str(a[1]) + "\n"
+    close(file)
+    #return (longestPage, allWords, uniqueList, subDomainList)
+
+def addToHist(url):
+    if (len(hist) < 15):
+        hist.append(url)
+    else:
+        hist.pop()
+        hist.append(url)
+
+def inHist(url):
+    similarity = 0
+    for i in hist:
+        lent = max(len(url), len(i))
+        for z in range(min(len(url), len(i))):
+            if url[z] == i[z]:
+                similarity +=1
+        if similarity / lent >= 0.9:
+            return True
+    return False
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
+    addToHist(url)
+    #print("Getting here")
     # Implementation required.
     # url: the URL that was used to get the page
     urlStr = urlparse(url).geturl
-    reExp = ""
-    allLinks = re.match(reExp, resp.raw_response.content)
-    for l in allLinks:
-        if not (is_valid(l)):
-            allLinks.remove(l)
+    #reExp = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)"
+    if resp.raw_response == None:
+        return list()
+    try:
+        respToStrin = resp.raw_response.content.decode('utf-8')
+    except:
+        #bad encoding
+        return list()
+    soup = BeautifulSoup(respToStrin)
+    #print(soup.prettify())
+    allLinks = []
+    for link in soup.find_all('a'):
+        thisLink = link.get('href')
+        if not (thisLink in hist):
+            allLinks.append(thisLink)
+    thisPageLen = 0
+    for stringa in soup.stripped_strings:
+        listA = tokenize(stringa)
+        thisPageLen += len(listA)
+        allWords = computeWordFrequencies(listA, allWords)
+    if (thisPageLen > longestPage[1]):
+        longestPage[1] = thisPageLen
+        longestPage[0] = url
+
+    newUrl = url.split("#")
+    uniqueList.append(newUrl[0])
+
+    if ("ics.uci.edu" in url):
+        newUrl = url.split(".edu")
+        newUrl = newUrl[0] + ".edu"
+        if newUrl not in subDomainList:
+            subDomainList[newUrl] = 1
+        else:
+            subDomainList[newUrl] +=1
     
 
-    re.match(".ics.uci.edu/")
+        
+    #print(respToStrin)
+    #allLinks = re.findall(reExp, respToStrin)
+    #print(allLinks)
+    #print(len(allLinks))
+    print("Crawled link :", url, "Found :",len(allLinks), "Links" )
+    #if (allLinks != None):
+     #   for l in allLinks:
+      #      if not (is_valid(l)):
+       #         allLinks.remove(l)
+    
+    return allLinks
+    #re.match(".ics.uci.edu/")
 
     # resp.url: the actual url of the page
     # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
@@ -27,10 +121,10 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page! 
     # we will use the beautifulSoup to get the html content
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    #return list()
 
 def helper(url):
-    if (".ics.uci.edu/" in urlparse(url).geturl) or (".cs.uci.edu/" in urlparse(url).geturl) or (".informatics.uci.edu/" in urlparse(url).geturl)  or (".stat.uci.edu/" in urlparse(url).geturl):
+    if ".ics.uci.edu/" in url or ".cs.uci.edu/" in url or ".informatics.uci.edu/" in url  or ".stat.uci.edu/" in url:
         return True
     else:
         return False
