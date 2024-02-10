@@ -5,44 +5,42 @@ from bs4 import BeautifulSoup
 from PartA import tokenize, computeWordFrequencies, printTokens
 import sys
 
-global longestPage
-
-global allWords
-
-global hist
-
-global uniqueList
-
-global subDomainList
 
 
-def setup():
-    longestPage =  ("", 0)
-    allWords= {}
-    hist = []
-    uniqueList = set()
-    subDomainList = {}
 
-def getStats():
+
+
+    
+
+def getStats(metaData):
+    longestPage =  metaData[0]
+    allWords= metaData[1]
+    hist = metaData[2]
+    uniqueList = metaData[3]
+    subDomainList = metaData[4]
+
     file= open("report.txt" , 'w')
     longestPage = "Longest Page was : "+ longestPage[0] + " with " + str(longestPage[1]) + " words\n"
-    file.write(longestPage)
-    file.write(printTokens(allWords))
-    uniqueList = "Unique pages visited = " + str(len(uniqueList)) + "\n"
-    file.write(uniqueList)
-    for a in subDomainList:
-        strToWrite = a[0] + " " + str(a[1]) + "\n"
-    close(file)
+    if (longestPage!= None):
+        file.write(longestPage)
+    if (allWords!= {}):
+        file.write(printTokens(allWords))
+    if (uniqueList!= None):
+        uniqueList = "Unique pages visited = " + str(len(uniqueList)) + "\n"
+    if(subDomainList !=None):
+        for a in subDomainList:
+            strToWrite = a[0] + " " + str(a[1]) + "\n"
+    file.close()
     #return (longestPage, allWords, uniqueList, subDomainList)
 
-def addToHist(url):
+def addToHist(url, hist):
     if (len(hist) < 15):
         hist.append(url)
     else:
         hist.pop()
         hist.append(url)
 
-def inHist(url):
+def inHist(url, hist):
     similarity = 0
     for i in hist:
         lent = max(len(url), len(i))
@@ -53,30 +51,36 @@ def inHist(url):
             return True
     return False
 
-def scraper(url, resp):
-    links = extract_next_links(url, resp)
+def scraper(url, resp, md):
+    links = extract_next_links(url, resp, md)
     return [link for link in links if is_valid(link)]
 
-def extract_next_links(url, resp):
-    addToHist(url)
+def extract_next_links(url, resp, metaData):
+    longestPage =  metaData[0]
+    allWords= metaData[1]
+    hist = metaData[2]
+    uniqueList = metaData[3]
+    subDomainList = metaData[4]
+
+    addToHist(url, hist)
     #print("Getting here")
     # Implementation required.
     # url: the URL that was used to get the page
     urlStr = urlparse(url).geturl
     #reExp = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)"
     if resp.raw_response == None:
-        return list()
+        return (list(), metaData)
     try:
         respToStrin = resp.raw_response.content.decode('utf-8')
     except:
         #bad encoding
-        return list()
+        return (list(), metaData)
     soup = BeautifulSoup(respToStrin)
     #print(soup.prettify())
     allLinks = []
     for link in soup.find_all('a'):
         thisLink = link.get('href')
-        if not (thisLink in hist):
+        if (not (thisLink in hist)) and (not inHist(url, hist)):
             allLinks.append(thisLink)
     thisPageLen = 0
     for stringa in soup.stripped_strings:
@@ -88,7 +92,7 @@ def extract_next_links(url, resp):
         longestPage[0] = url
 
     newUrl = url.split("#")
-    uniqueList.append(newUrl[0])
+    uniqueList.add(newUrl[0])
 
     if ("ics.uci.edu" in url):
         newUrl = url.split(".edu")
@@ -110,7 +114,7 @@ def extract_next_links(url, resp):
       #      if not (is_valid(l)):
        #         allLinks.remove(l)
     
-    return allLinks
+    return (allLinks, (longestPage, allWords, hist, uniqueList, subDomainList))
     #re.match(".ics.uci.edu/")
 
     # resp.url: the actual url of the page
