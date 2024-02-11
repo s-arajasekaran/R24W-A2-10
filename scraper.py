@@ -35,10 +35,7 @@ def getStats(metaData):
     else:
         file.write("0")
     if(subDomainList !=None):
-        for a in subDomainList:
-            strToWrite = a[0] + " " + str(a[1]) + "|"
-            file.write(strToWrite)
-        file.write("\n")
+        file.write(printTokens(subDomainList))
     else:
         file.write("\n")
     file.close()
@@ -52,6 +49,21 @@ def addToHist(url, hist):
         hist.pop()
         hist.append(url)
 
+def ninetyRule(urlA, urlB):
+    #return Flase
+    if (len(urlA) != len(urlB)):
+        return False
+    else:
+        i = 0
+        sim = 0
+        while (i < len(urlA)):
+            if urlA[i] == urlB[i]:
+                sim+=1
+            i+=1
+        if (i == 0):
+            return False
+        return (sim/i) >= (1 - 1/i)
+
 def inHist(url, hist):
     similarity = 0
     total = 0
@@ -59,7 +71,15 @@ def inHist(url, hist):
         if (url == hist):
             similarity+=1
         total+=1
-    return similarity/total > (10/15)
+    
+    if similarity/total > (10/15):
+        return True
+    else:
+        url = url.split("/")[-1]
+        for a in hist:
+            if (ninetyRule(url, a.split("/")[-1])):
+                True
+        return False
     
 
 def scraper(url, resp, md):
@@ -68,6 +88,7 @@ def scraper(url, resp, md):
     return ([link for link in links if is_valid(link)], res[1])
 
 def extract_next_links(url, resp, metaData):
+    print(url)
     longestPage =  metaData[0]
     allWords= metaData[1]
     hist = metaData[2]
@@ -96,20 +117,19 @@ def extract_next_links(url, resp, metaData):
 
     if ("ics.uci.edu" in url):
         subDomURL = url.split(".edu")
-        subDomURL = newUrl[0] + ".edu"
+        subDomURL = subDomURL[0] + ".edu"
         if subDomURL not in subDomainList:
             subDomainList[subDomURL] = 1
         else:
             subDomainList[subDomURL] +=1
-    else:
-        print("URL NOT A SUBDOMAIN ========== ", url)
+    
     soup = BeautifulSoup(respToStrin)
     #print(soup.prettify())
     allLinks = []
     for link in soup.find_all('a'):
         thisLink = link.get('href')
         #print(thisLink, end=' ')
-        if (not inHist(thisLink.split("?")[0], hist)):
+        if (thisLink != None) and (not inHist(thisLink.split("?")[0], hist)):
             allLinks.append(thisLink)
     thisPageLen = 0
     for stringa in soup.stripped_strings:
@@ -131,7 +151,7 @@ def extract_next_links(url, resp, metaData):
     #allLinks = re.findall(reExp, respToStrin)
     #print(allLinks)
     #print(len(allLinks))
-    print("Crawled link # :", len(uniqueList), " : ", url)
+    #print("Crawled link # :", len(uniqueList), " : ", url)
     #if (allLinks != None):
      #   for l in allLinks:
       #      if not (is_valid(l)):
