@@ -11,14 +11,15 @@ def tokenize(stringa):
     tokens = []
     #Using regex to make life easier
     try:
-        tempList = re.findall(r"[A-Za-z0-9'.]+", line.lower())
+        tempList = re.findall(r"[A-Za-z0-9'`.]+", stringa.lower())
         for word in tempList:
-            if not(word in stopWords):
+            if not(word in stopWords) and (len(word) >= 2):
                 tokens.append(word)
     except:
         #if file is not readable as a text file throw error as project specs say I only need
         #to read text files. Supported by edstem post 5
-        print("Error Reading the file - are you sure you supplied a txt file?'")
+        #print("Error Reading the file - are you sure you supplied a txt file?'")
+        fail = 1
     
     return tokens
 
@@ -48,10 +49,10 @@ def printTokens(tokenDict):
     maxNum = 50
     returnStr = ""
     for a in sortedDict:
-        returnStr = returnStr + a[0]+'\t'+str(a[1]) + "\n"
+        returnStr = returnStr + a[0]+'-'+str(a[1]) + "|"
         maxNum-=1
         if (maxNum == 0):
-            return returnStr
+            return returnStr + "\n"
     
     
         

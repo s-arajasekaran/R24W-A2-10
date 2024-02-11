@@ -20,18 +20,30 @@ def getStats(metaData):
     subDomainList = metaData[4]
 
     file= open("report.txt" , 'w')
-    longestPage = "Longest Page was : "+ longestPage[0] + " with " + str(longestPage[1]) + " words\n"
+    longestPage = longestPage[0] + "|" + str(longestPage[1]) + "\n"
     if (longestPage!= None):
         file.write(longestPage)
+    else:
+        file.write("\n")
     if (allWords!= {}):
         file.write(printTokens(allWords))
+    else:
+        file.write("\n")
     if (uniqueList!= None):
-        uniqueList = "Unique pages visited = " + str(len(uniqueList)) + "\n"
+        uniqueList = str(len(uniqueList)) + "\n"
+        file.write(uniqueList)
+    else:
+        file.write("0")
     if(subDomainList !=None):
         for a in subDomainList:
-            strToWrite = a[0] + " " + str(a[1]) + "\n"
+            strToWrite = a[0] + " " + str(a[1]) + "|"
+            file.write(strToWrite)
+        file.write("\n")
+    else:
+        file.write("\n")
     file.close()
     #return (longestPage, allWords, uniqueList, subDomainList)
+
 
 def addToHist(url, hist):
     if (len(hist) < 15):
@@ -42,18 +54,18 @@ def addToHist(url, hist):
 
 def inHist(url, hist):
     similarity = 0
-    for i in hist:
-        lent = max(len(url), len(i))
-        for z in range(min(len(url), len(i))):
-            if url[z] == i[z]:
-                similarity +=1
-        if similarity / lent >= 0.9:
-            return True
-    return False
+    total = 0
+    for a in hist:
+        if (url == hist):
+            similarity+=1
+        total+=1
+    return similarity/total > (10/15)
+    
 
 def scraper(url, resp, md):
-    links = extract_next_links(url, resp, md)
-    return [link for link in links if is_valid(link)]
+    res = extract_next_links(url, resp, md)
+    links = res[0]
+    return ([link for link in links if is_valid(link)], res[1])
 
 def extract_next_links(url, resp, metaData):
     longestPage =  metaData[0]
@@ -61,12 +73,16 @@ def extract_next_links(url, resp, metaData):
     hist = metaData[2]
     uniqueList = metaData[3]
     subDomainList = metaData[4]
+    if (resp.status !=  200):
+        return (list(), metaData)
+    #addToHist(url, hist)
+    
 
-    addToHist(url, hist)
     #print("Getting here")
     # Implementation required.
     # url: the URL that was used to get the page
     urlStr = urlparse(url).geturl
+
     #reExp = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)"
     if resp.raw_response == None:
         return (list(), metaData)
@@ -75,12 +91,25 @@ def extract_next_links(url, resp, metaData):
     except:
         #bad encoding
         return (list(), metaData)
+
+    addToHist(url.split("?")[0], hist)
+
+    if ("ics.uci.edu" in url):
+        subDomURL = url.split(".edu")
+        subDomURL = newUrl[0] + ".edu"
+        if subDomURL not in subDomainList:
+            subDomainList[subDomURL] = 1
+        else:
+            subDomainList[subDomURL] +=1
+    else:
+        print("URL NOT A SUBDOMAIN ========== ", url)
     soup = BeautifulSoup(respToStrin)
     #print(soup.prettify())
     allLinks = []
     for link in soup.find_all('a'):
         thisLink = link.get('href')
-        if (not (thisLink in hist)) and (not inHist(url, hist)):
+        #print(thisLink, end=' ')
+        if (not inHist(thisLink.split("?")[0], hist)):
             allLinks.append(thisLink)
     thisPageLen = 0
     for stringa in soup.stripped_strings:
@@ -88,19 +117,13 @@ def extract_next_links(url, resp, metaData):
         thisPageLen += len(listA)
         allWords = computeWordFrequencies(listA, allWords)
     if (thisPageLen > longestPage[1]):
-        longestPage[1] = thisPageLen
-        longestPage[0] = url
+        longestPage = (url, thisPageLen)
+        #longestPage[0] = url
 
     newUrl = url.split("#")
     uniqueList.add(newUrl[0])
 
-    if ("ics.uci.edu" in url):
-        newUrl = url.split(".edu")
-        newUrl = newUrl[0] + ".edu"
-        if newUrl not in subDomainList:
-            subDomainList[newUrl] = 1
-        else:
-            subDomainList[newUrl] +=1
+    
     
 
         
@@ -108,7 +131,7 @@ def extract_next_links(url, resp, metaData):
     #allLinks = re.findall(reExp, respToStrin)
     #print(allLinks)
     #print(len(allLinks))
-    print("Crawled link :", url, "Found :",len(allLinks), "Links" )
+    print("Crawled link # :", len(uniqueList), " : ", url)
     #if (allLinks != None):
      #   for l in allLinks:
       #      if not (is_valid(l)):
@@ -134,6 +157,7 @@ def helper(url):
         return False
 
 def is_valid(url):
+    #print(url)
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
