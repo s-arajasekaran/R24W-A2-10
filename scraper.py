@@ -75,10 +75,15 @@ def inHist(url, hist):
     if similarity/total > (10/15):
         return True
     else:
-        url = url.split("/")[-1]
+        splturl = url.split("/")[-1]
+        if splturl == '':
+            splturl =url.split("/")[-2]
+        aSplit = a.split("/")[-1]
+        if aSplit == '':
+             aSplit = a.split("/")[-2]
         for a in hist:
-            if (ninetyRule(url, a.split("/")[-1])):
-                True
+            if (ninetyRule(splturl, aSplit)):
+                return True
         return False
     
 
