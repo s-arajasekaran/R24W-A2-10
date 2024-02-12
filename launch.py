@@ -13,6 +13,7 @@ def main(config_file, restart):
     hist = []
     uniqueList = set()
     subDomainList = {}
+    #checkSumAll = set()
     metaData = (longestPage, allWords, hist, uniqueList, subDomainList)
     
     cparser = ConfigParser()
