@@ -19,11 +19,11 @@ class Worker(Thread):
         super().__init__(daemon=True)
         
     def run(self):
-        i = 0
+        
         while True:
             
             tbd_url = self.frontier.get_tbd_url()
-            if not tbd_url or i>5000:
+            if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
             resp = download(tbd_url, self.config, self.logger)
@@ -37,5 +37,5 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
             time.sleep(self.config.time_delay)
-            i+=1
+            
         #return self.metaData
