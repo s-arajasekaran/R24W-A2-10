@@ -2,7 +2,7 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-from PartA import tokenize, computeWordFrequencies, printTokens
+from PartA import tokenize, computeWordFrequencies, printTokens, checkSum
 import sys
 
 
@@ -21,19 +21,27 @@ def getStats(metaData):
 
     file= open("report.txt" , 'w')
     longestPage = longestPage[0] + "|" + str(longestPage[1]) + "\n"
+
+    #write longest page
     if (longestPage!= None):
         file.write(longestPage)
     else:
         file.write("\n")
+
+    #write 50 top tokens
     if (allWords!= {}):
         file.write(printTokens(allWords))
     else:
         file.write("\n")
+
+    #print num unique sites
     if (uniqueList!= None):
         uniqueList = str(len(uniqueList)) + "\n"
         file.write(uniqueList)
     else:
         file.write("0")
+    
+    #print subdomain list
     if(subDomainList !=None):
         returnStr = ''
         for a in subDomainList:
@@ -129,6 +137,7 @@ def extract_next_links(url, resp, metaData):
     hist = metaData[2]
     uniqueList = metaData[3]
     subDomainList = metaData[4]
+    checkSumAll = metaData[5]
 
     #early return and dont crawl if response is not 200
     if (resp.status !=  200):
@@ -180,10 +189,22 @@ def extract_next_links(url, resp, metaData):
         listA = tokenize(stringa)
         thisPageLen += len(listA)
         numTokens += len(set(listA))
-        allWords = computeWordFrequencies(listA, allWords)
+        allWords = computeWordFrequencies(listA, allWords)\
+    
+    #checksum implementation
+    checkSumRes = checkSum(allWords, checkSumAll)
+    if not (checkSumRes[1]):
+        #sum was in history exact duplicate found
+        return (list(), metaData)
+    else:
+        checkSumAll = checkSumRes[0]
+    
+
     if (thisPageLen > longestPage[1]):
         longestPage = (url, thisPageLen)
         #longestPage[0] = url
+    
+
 
     if(numTokens < 50 ):
         print(numTokens)
@@ -217,7 +238,7 @@ def extract_next_links(url, resp, metaData):
        #         allLinks.remove(l)
     
     #rebuild metadata tuple with all new information to reflect a successfull crawl
-    return (allLinks, (longestPage, allWords, hist, uniqueList, subDomainList))
+    return (allLinks, (longestPage, allWords, hist, uniqueList, subDomainList, checkSumAll))
     #re.match(".ics.uci.edu/")
 
     # resp.url: the actual url of the page

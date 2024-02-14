@@ -8,13 +8,14 @@ from scraper import getStats
 
 
 def main(config_file, restart):
+    #Metadata that gets passed around to retain information abt this crawl
     longestPage =  ("", 0)
     allWords= {}
     hist = []
     uniqueList = set()
     subDomainList = {}
-    #checkSumAll = set()
-    metaData = (longestPage, allWords, hist, uniqueList, subDomainList)
+    checkSumAll = set()
+    metaData = (longestPage, allWords, hist, uniqueList, subDomainList, checkSumAll)
     
     cparser = ConfigParser()
     cparser.read(config_file)
