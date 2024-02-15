@@ -23,7 +23,12 @@ def readResults (path):
             for x in allSubDoms:
                 if not (x=='' or x=='\n'):
                     total+=1
-                    writeFile.write("\t" + x.split("-")[0] + " : " + x.split("-")[1] + "\n")
+                    xSplit = x.split("-")
+                    if (len(xSplit) == 2):
+                        writeFile.write("\t" + xSplit[0] + " : " + xSplit[1] + "\n")
+                    else:
+                        writeFile.write("\t" + xSplit[0] +"-"+ xSplit[1]+" : " + xSplit[2] + "\n")
+                    
 
             writeFile.write("-------found "+ str(total)+ " different subdomains")
         

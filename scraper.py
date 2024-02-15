@@ -141,6 +141,7 @@ def extract_next_links(url, resp, metaData):
 
     #early return and dont crawl if response is not 200
     if (resp.status !=  200):
+        print("---------------------Page Cut for non-200 response----------------")
         return (list(), metaData)
     #addToHist(url, hist)
     
@@ -152,16 +153,19 @@ def extract_next_links(url, resp, metaData):
 
     #early return and dont crawl if response is invalid sometimes (edge case that we encountered testing)
     if resp.raw_response == None:
+        print("---------------------Page Cut for no Response----------------")
         return (list(), metaData)
     try:
         respToStrin = resp.raw_response.content.decode('utf-8')
     except:
+        print("---------------------Page Cut for bad encoding----------------")
         #bad encoding
         return (list(), metaData)
 
     #get the path url and check if in history - to help in case one link adds 100 calander links
     #the links may not get stopped when checking  below so we catch them here
     if (inHist(url.split("?")[0], hist)):
+        print("---------------------Page Cut for trap Detection----------------")
          return (list(), metaData)
 
     addToHist(url.split("?")[0], hist)
@@ -186,10 +190,12 @@ def extract_next_links(url, resp, metaData):
     #dont crawl (although we already did) we just dont include the information in statistics
     #and dont add any new links found
     for stringa in soup.stripped_strings:
-        listA = tokenize(stringa)
-        thisPageLen += len(listA)
+        tokenizeRes  = tokenize(stringa)
+        listA = tokenizeRes[0]
+
+        thisPageLen += tokenizeRes[1]
         numTokens += len(set(listA))
-        allWords = computeWordFrequencies(listA, allWords)\
+        allWords = computeWordFrequencies(listA, allWords)
     
     #checksum implementation
     checkSumRes = checkSum(allWords, checkSumAll)
@@ -207,8 +213,8 @@ def extract_next_links(url, resp, metaData):
 
 
     if(numTokens < 50 ):
-        print(numTokens)
-        print("Here")
+        #print(numTokens)
+        print("---------------------Page Cut for Inssufficent Information----------------")
         return (list(), metaData)
     
     

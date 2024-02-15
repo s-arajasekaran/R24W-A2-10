@@ -16,19 +16,21 @@ stopWords = stopWords.split()
 def tokenize(stringa):
     
     tokens = []
+    totalWordCount = 0
     #Using regex to make life easier
     try:
         tempList = re.findall(r"[A-Za-z0-9'`.]+", stringa.lower())
         for word in tempList:
             if not(word in stopWords) and (len(word) >= 2):
                 tokens.append(word)
+            totalWordCount+=1
     except:
         #if file is not readable as a text file throw error as project specs say I only need
         #to read text files. Supported by edstem post 5
         #print("Error Reading the file - are you sure you supplied a txt file?'")
         fail = 1
     
-    return tokens
+    return (tokens, totalWordCount)
 
 #This is also O(N) in terms of the total number of tokens
 #Im only checking every value once and addign to a master list
