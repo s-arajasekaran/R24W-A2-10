@@ -201,6 +201,7 @@ def extract_next_links(url, resp, metaData):
     checkSumRes = checkSum(allWords, checkSumAll)
     if not (checkSumRes[1]):
         #sum was in history exact duplicate found
+         print("---------------------Page Cut for Duplicate Detection---------------")
         return (list(), metaData)
     else:
         checkSumAll = checkSumRes[0]
