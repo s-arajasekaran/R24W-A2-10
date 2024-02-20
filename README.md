@@ -1,10 +1,10 @@
 
-__________________GROUP INFORMATION_________________
+_________________GROUP INFORMATION_________________
 
-Ajay Rajasekaran - adrajase - 50248933
-Sanath Balaji - sanathb - 26533849
-Krisha Konchadi - kkonchad - 20077119
-Kevin Shihora - kshihora - 92439119
+Ajay Rajasekaran - adrajase - 50248933  
+Sanath Balaji - sanathb - 26533849  
+Krisha Konchadi - kkonchad - 20077119  
+Kevin Shihora - kshihora - 92439119  
 
 
 
