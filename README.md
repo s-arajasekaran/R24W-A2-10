@@ -1,3 +1,18 @@
+
+__________________GROUP INFORMATION_________________
+
+Ajay Rajasekaran - adrajase - 50248933
+Sanath Balaji - sanathb - 26533849
+Krisha Konchadi - kkonchad - 20077119
+Kevin Shihora - kshihora - 92439119
+
+
+
+
+
+
+
+
 ABOUT
 -------------------------
 This is the base implementation of a full crawler that uses a spacetime
